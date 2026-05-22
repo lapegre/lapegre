@@ -132,7 +132,7 @@
   .ct-stats{display:flex;gap:8px;align-items:baseline;}
   .ct-rev{font-family:'Share Tech Mono',monospace;font-size:13px;color:var(--green);}
   .ct-count{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text-dim);letter-spacing:1px;}
-  #admin-trigger{position:fixed;top:0;left:0;width:40px;height:60px;z-index:9997;cursor:default;}
+  #admin-trigger{position:fixed;top:0;left:0;width:40px;height:60px;z-index:9998;cursor:default;}
   .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);z-index:9990;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;}
   .modal-bg.open{opacity:1;pointer-events:all;}
   .modal{background:var(--bg2);border:1px solid var(--border);border-top:2px solid var(--accent);padding:32px;width:340px;}
@@ -216,6 +216,37 @@
     .tables-grid{grid-template-columns:1fr;}
     .tab{padding:12px 14px;font-size:10px;}
   }
+
+  /* ── HISTORIQUE ── */
+  .hist-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;}
+  .hist-card{background:rgba(10,10,10,.85);border:1px solid var(--border);border-top:2px solid var(--accent);cursor:pointer;transition:all .2s;user-select:none;position:relative;}
+  .hist-card:hover{border-color:#3a3a3a;background:rgba(18,18,18,.9);transform:translateY(-2px);}
+  .hist-card-head{padding:12px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
+  .hist-week-label{font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:3px;color:var(--text-bright);}
+  .hist-week-dates{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text-dim);letter-spacing:1px;}
+  .hist-mini-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);}
+  .hist-mini-stat{background:var(--bg2);padding:8px 10px;text-align:center;}
+  .hist-mini-val{font-family:'Oswald',sans-serif;font-size:16px;color:var(--text-bright);}
+  .hist-mini-val.g{color:#2ecc71;}
+  .hist-mini-lbl{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--text-dim);letter-spacing:1px;margin-top:2px;}
+  .hist-colors{display:flex;gap:4px;padding:10px 14px;flex-wrap:wrap;}
+  .hist-color-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+  .hist-expand-hint{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--text-dim);letter-spacing:1px;padding:6px 14px;border-top:1px solid var(--border);text-align:right;}
+
+  /* modal d'expansion */
+  .hist-modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.82);backdrop-filter:blur(6px);z-index:8000;display:flex;align-items:flex-start;justify-content:center;padding:30px 20px;opacity:0;pointer-events:none;transition:opacity .2s;overflow-y:auto;}
+  .hist-modal-bg.open{opacity:1;pointer-events:all;}
+  .hist-modal{background:var(--bg2);border:1px solid var(--border);border-top:2px solid var(--accent);width:100%;max-width:900px;position:relative;animation:fadeUp .2s ease;}
+  .hist-modal-head{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--border);}
+  .hist-modal-title{font-family:'Oswald',sans-serif;font-size:18px;letter-spacing:4px;color:var(--text-bright);}
+  .hist-modal-sub{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text-dim);letter-spacing:2px;margin-top:3px;}
+  .hist-close{background:none;border:1px solid var(--border);color:var(--text-dim);font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:2px;padding:6px 12px;cursor:pointer;transition:all .15s;}
+  .hist-close:hover{border-color:var(--accent);color:var(--text-bright);}
+  .hist-modal-stats{display:grid;grid-template-columns:repeat(4,1fr);background:var(--border);gap:1px;border:1px solid var(--border);margin:20px 22px 0;}
+  .hist-modal-body{padding:20px 22px;}
+  .hist-tables-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;}
+  .hist-empty{text-align:center;padding:80px;font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:3px;color:var(--text-dim);}
+  .hist-no-data{text-align:center;padding:60px;font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:3px;color:var(--text-dim);}
 </style>
 </head>
 <body>
@@ -315,6 +346,7 @@
 <nav>
   <div class="tab active" data-tab="ajout">Ajout d'action</div>
   <div class="tab" data-tab="tableau">Tableau de bord</div>
+  <div class="tab" data-tab="historique">Historique</div>
   <div class="tab" data-tab="panel" id="panel-tab" style="display:none">Panel</div>
 </nav>
 
@@ -425,6 +457,31 @@
   <div class="tables-grid" id="tables-grid"></div>
 </section>
 
+<!-- HISTORIQUE -->
+<section class="section" id="section-historique">
+  <div class="sec-label">Lecture seule</div>
+  <div class="sec-title">Historique des Semaines</div>
+  <div class="hist-empty" id="hist-empty" style="display:none">// AUCUN HISTORIQUE DISPONIBLE</div>
+  <div class="hist-grid" id="hist-grid"></div>
+</section>
+
+<!-- Modal expansion historique -->
+<div class="hist-modal-bg" id="hist-modal-bg">
+  <div class="hist-modal" id="hist-modal">
+    <div class="hist-modal-head">
+      <div>
+        <div class="hist-modal-title" id="hist-modal-title">SEMAINE</div>
+        <div class="hist-modal-sub" id="hist-modal-sub"></div>
+      </div>
+      <button class="hist-close" id="hist-close">✕ FERMER</button>
+    </div>
+    <div class="hist-modal-stats" id="hist-modal-stats"></div>
+    <div class="hist-modal-body">
+      <div class="hist-tables-grid" id="hist-tables-grid"></div>
+    </div>
+  </div>
+</div>
+
 <!-- PANEL -->
 <section class="section" id="section-panel">
   <div class="sec-label">Admin uniquement</div>
@@ -467,7 +524,7 @@ function firebaseOnValue(ref,callback){ref.on('value',snapshot=>{callback({val:(
 </script>
 <script>
 let actions=[];
-firebaseOnValue(firebaseRef(firebaseDB,'actions'),snapshot=>{actions=snapshot.val()||[];renderAll();renderPanel();});
+firebaseOnValue(firebaseRef(firebaseDB,'actions'),snapshot=>{actions=snapshot.val()||[];renderAll();renderPanel();checkWeekReset();});
 
 let selColor='',selCP='';
 const NO_REV=['Transaction','Commande Tablette'];
@@ -484,6 +541,7 @@ document.querySelectorAll('.tab').forEach(t=>{
     document.getElementById('section-'+t.dataset.tab).classList.add('active');
     if(t.dataset.tab==='tableau')renderAll();
     if(t.dataset.tab==='panel')renderPanel();
+    if(t.dataset.tab==='historique')renderHistorique();
   });
 });
 
@@ -827,6 +885,13 @@ function logoutAdmin(){
   isAdmin=false;
   document.getElementById('admin-bar').classList.remove('open');
   document.getElementById('panel-tab').style.display='none';
+  const ht=document.querySelector('.tab[data-tab="historique"]');
+  if(ht&&ht.classList.contains('active')){
+    ht.classList.remove('active');
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+    document.querySelector('.tab[data-tab="ajout"]').classList.add('active');
+    document.getElementById('section-ajout').classList.add('active');
+  }
   renderAll();
 }
 
@@ -932,6 +997,165 @@ document.getElementById('edit-save').addEventListener('click',()=>{
 ['pwd-modal','edit-modal'].forEach(id=>{
   document.getElementById(id).addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.classList.remove('open');});
 });
+
+// ── HISTORIQUE ─────────────────────────────────────────────────────────────
+let historique=[];
+firebaseOnValue(firebaseRef(firebaseDB,'historique'),snapshot=>{
+  historique=snapshot.val()||[];
+  if(!Array.isArray(historique))historique=Object.values(historique);
+});
+
+function getWeekLabel(dateStr){
+  // dateStr = ISO string du lundi
+  const d=new Date(dateStr);
+  const end=new Date(d);end.setDate(end.getDate()+6);
+  const fmt=x=>`${String(x.getDate()).padStart(2,'0')}/${String(x.getMonth()+1).padStart(2,'0')}`;
+  return{label:`SEMAINE DU ${fmt(d)}`,dates:`${fmt(d)} — ${fmt(end)}`};
+}
+
+function getPrevMonday(){
+  const now=new Date();
+  const day=now.getDay()||7;
+  const mon=new Date(now);
+  mon.setDate(now.getDate()-day+1);
+  mon.setHours(0,0,0,0);
+  return mon;
+}
+
+function checkWeekReset(){
+  const mon=getPrevMonday();
+  const monKey=mon.toISOString().slice(0,10);
+  firebaseRef(firebaseDB,'lastReset').once('value').then(snapshot=>{
+    const last=snapshot.val()||'';
+    if(last===monKey)return;
+    if(actions.length===0){
+      firebaseSet(firebaseRef(firebaseDB,'lastReset'),monKey);
+      return;
+    }
+    const snap={weekStart:monKey,actions:[...actions],archivedAt:Date.now()};
+    const newHist=[...historique,snap];
+    firebaseSet(firebaseRef(firebaseDB,'historique'),newHist);
+    firebaseSet(firebaseRef(firebaseDB,'lastReset'),monKey);
+    actions=[];
+    firebaseSet(firebaseRef(firebaseDB,'actions'),[]);
+    renderAll();
+    const t=document.getElementById('toast');
+    t.textContent='✓ SEMAINE ARCHIVÉE & TABLEAU RÉINITIALISÉ';
+    t.classList.add('show');
+    setTimeout(()=>{t.classList.remove('show');t.textContent='✓ ACTION ENREGISTRÉE';},3000);
+  });
+}
+
+function renderHistorique(){
+  const grid=document.getElementById('hist-grid');
+  const empty=document.getElementById('hist-empty');
+  if(!historique||historique.length===0){
+    grid.innerHTML='';empty.style.display='block';return;
+  }
+  empty.style.display='none';
+  const sorted=[...historique].reverse();
+  grid.innerHTML=sorted.map((w,i)=>{
+    const{label,dates}=getWeekLabel(w.weekStart);
+    const acts=w.actions||[];
+    const totalRev=acts.reduce((s,a)=>s+(a.revenue||0),0);
+    const cpOk=acts.filter(a=>a.cp==='CP Réussi').length;
+    const usedColors=[...new Set(acts.map(a=>a.color))];
+    const dots=usedColors.map(c=>{
+      const hex=COLOR_HEX[c]||'#888';
+      const extra=c==='skull'?'box-shadow:0 0 0 1px rgba(255,255,255,.2);':c==='black'?'box-shadow:0 0 0 1px #555;':'';
+      return`<span class="hist-color-dot" style="background:${hex};${extra}" title="${c}"></span>`;
+    }).join('');
+    return`<div class="hist-card" onclick="openHistWeek(${historique.length-1-i})">
+      <div class="hist-card-head">
+        <div>
+          <div class="hist-week-label">${label}</div>
+          <div class="hist-week-dates">${dates}</div>
+        </div>
+      </div>
+      <div class="hist-mini-stats">
+        <div class="hist-mini-stat"><div class="hist-mini-val">${acts.length}</div><div class="hist-mini-lbl">ACTIONS</div></div>
+        <div class="hist-mini-stat"><div class="hist-mini-val g">$${totalRev.toLocaleString('fr-FR')}</div><div class="hist-mini-lbl">REVENUS</div></div>
+        <div class="hist-mini-stat"><div class="hist-mini-val">${cpOk}</div><div class="hist-mini-lbl">CP OK</div></div>
+      </div>
+      <div class="hist-colors">${dots}</div>
+      <div class="hist-expand-hint">CLIQUER POUR AGRANDIR →</div>
+    </div>`;
+  }).join('');
+}
+
+function openHistWeek(idx){
+  const w=historique[idx];
+  if(!w)return;
+  const{label,dates}=getWeekLabel(w.weekStart);
+  const acts=w.actions||[];
+  document.getElementById('hist-modal-title').textContent=label;
+  document.getElementById('hist-modal-sub').textContent=dates;
+
+  const totalRev=acts.reduce((s,a)=>s+(a.revenue||0),0);
+  const cpOk=acts.filter(a=>a.cp==='CP Réussi').length;
+  const cpFail=acts.filter(a=>a.cp==='CP Raté').length;
+  document.getElementById('hist-modal-stats').innerHTML=
+    '<div class="stat"><div class="stat-lbl">Total actions</div><div class="stat-val">'+acts.length+'</div></div>'+
+    '<div class="stat"><div class="stat-lbl">Revenus totaux</div><div class="stat-val g">$'+totalRev.toLocaleString('fr-FR')+'</div></div>'+
+    '<div class="stat"><div class="stat-lbl">CP réussis</div><div class="stat-val">'+cpOk+'</div></div>'+
+    '<div class="stat"><div class="stat-lbl">CP ratés</div><div class="stat-val r">'+cpFail+'</div></div>';
+
+  const tgrid=document.getElementById('hist-tables-grid');
+  if(acts.length===0){
+    tgrid.innerHTML='<div class="hist-no-data">// AUCUNE ACTION CETTE SEMAINE</div>';
+  } else {
+    tgrid.innerHTML=ACTION_TYPES.map(function(type){
+      const rows=acts.filter(function(a){return a.action===type;}).sort(function(a,b){return b.id-a.id;});
+      if(rows.length===0)return'';
+      const hasRev=!NO_REV.includes(type)&&type!=='Labo';
+      const isDrogue=type==='Drogue';
+      const isTransac=type==='Transaction';
+      const isTablette=type==='Commande Tablette';
+      const ac=ACTION_COLOR[type]||'#e63946';
+      const totR=hasRev?rows.reduce(function(s,a){return s+(a.revenue||0);},0):null;
+      const bodyRows=rows.map(function(a){
+        const hex=COLOR_HEX[a.color]||'#888';
+        const ds=a.color==='skull'?'background:'+hex+';box-shadow:0 0 0 1px rgba(255,255,255,.25);':a.color==='black'?'background:'+hex+';box-shadow:0 0 0 1px #555;':'background:'+hex+';';
+        const cpPill=a.cp==='CP Réussi'?'<span class="pill pill-ok">RÉUSSI</span>':a.cp==='CP Raté'?'<span class="pill pill-fail">RATÉ</span>':'<span class="pill pill-none">AUCUN</span>';
+        return'<tr>'+
+          '<td><div class="ccell"><span class="cdot" style="'+ds+'"></span><span class="cname" style="color:'+hex+'">'+a.color+'</span></div></td>'+
+          (isDrogue?'<td style="color:var(--text-bright);font-weight:600">'+(a.drogue&&a.drogue.nom?a.drogue.nom:'—')+'</td><td class="dt">'+(a.drogue?a.drogue.qty:0)+'</td>':'')+
+          (isTransac?'<td style="color:var(--text-bright);font-weight:600">'+(a.transac&&a.transac.objet?a.transac.objet:'—')+'</td><td class="dt">'+(a.transac?a.transac.qty:0)+'</td>':'')+
+          (isTablette?'<td style="color:var(--text-bright);font-weight:600">'+(a.tablette&&a.tablette.objet?a.tablette.objet:'—')+'</td><td class="dt">'+(a.tablette?a.tablette.qty:0)+'</td>':'')+
+          (type==='Labo'?'<td><span class="pill pill-none">'+(a.laboCount||0)+' unité(s)</span></td>':'')+
+          (NO_REV.includes(type)||type==='Labo'?'<td><span class="rv-na">—</span></td>':'<td><span class="rv">$'+(a.revenue||0).toLocaleString('fr-FR')+'</span></td>')+
+          '<td><span class="dt">'+a.date+'</span></td>'+
+          (!isDrogue?'<td>'+cpPill+'</td>':'')+
+          '</tr>';
+      }).join('');
+      return'<div class="action-block">'+
+        '<div class="abh" style="border-left:3px solid '+ac+'">'+
+          '<div class="abt" style="color:'+ac+'">'+type+'</div>'+
+          '<div style="display:flex;gap:14px;align-items:center;">'+
+            (totR!==null?'<div class="abtotal">$'+totR.toLocaleString('fr-FR')+'</div>':'')+
+            '<div class="abc">'+rows.length+' entrée'+(rows.length!==1?'s':'')+'</div>'+
+          '</div>'+
+        '</div>'+
+        '<table class="xtable'+(isDrogue?' drogue-table':'')+'">'+
+          '<thead><tr>'+
+            '<th>Couleur</th>'+
+            (isDrogue?'<th>Drogue</th><th>Qté</th>':'')+
+            (isTransac||isTablette?'<th>Objet</th><th>Qté</th>':'')+
+            (type==='Labo'?'<th>Unités</th>':'')+
+            '<th>Revenus</th><th>Date</th>'+
+            (!isDrogue?'<th>CP</th>':'')+
+          '</tr></thead>'+
+          '<tbody>'+bodyRows+'</tbody>'+
+        '</table>'+
+      '</div>';
+    }).join('');
+  }
+  document.getElementById('hist-modal-bg').classList.add('open');
+}
+
+document.getElementById('hist-close').addEventListener('click',()=>document.getElementById('hist-modal-bg').classList.remove('open'));
+document.getElementById('hist-modal-bg').addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.classList.remove('open');});
+// ── END HISTORIQUE ─────────────────────────────────────────────────────────
 
 loadAnnonce();
 </script>
