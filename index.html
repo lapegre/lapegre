@@ -1064,7 +1064,8 @@ function checkWeekReset(){
       firebaseSet(firebaseRef(firebaseDB,'lastReset'),monKey);
       return;
     }
-    const snap={weekStart:monKey,actions:[...actions],archivedAt:Date.now()};
+    const prevMon=new Date(mon);prevMon.setDate(mon.getDate()-7);
+    const snap={weekStart:prevMon.toISOString().slice(0,10),actions:[...actions],archivedAt:Date.now()};
     const newHist=[...historique,snap];
     firebaseSet(firebaseRef(firebaseDB,'historique'),newHist);
     firebaseSet(firebaseRef(firebaseDB,'lastReset'),monKey);
